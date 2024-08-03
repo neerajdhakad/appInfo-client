@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, ChevronsUpDown, XCircle } from "lucide-react";
+import { ArrowLeft, XCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
@@ -23,79 +23,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Url } from "url";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "../components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../components/ui/popover";
-import { cn } from "../lib/utils";
+import {getTechStacks} from '../API/Api'
 // import { useToast } from "../components/ui/use-toast"
 
-const techStackOptions = [
-  "Angular",
-  ".NET",
-  "React.js",
-  "Vue.js",
-  "Node.js",
-  "Java",
-  "Python",
-  "Ruby on Rails",
-  "Django",
-  "Flask",
-  "Spring Boot",
-  "Laravel",
-  "ASP.NET",
-  "Svelte",
-  "Ember.js",
-  "Backbone.js",
-  "Express.js",
-  "Koa.js",
-  "Next.js",
-  "Nuxt.js",
-  "Gatsby.js",
-  "JQuery",
-  "Meteor.js",
-  "Aurelia",
-  "FastAPI",
-];
+// const techStackOptions = [
+//   "Angular",
+//   ".NET",
+//   "React.js",
+//   "Vue.js",
+//   "Node.js",
+//   "Java",
+//   "Python",
+//   "Ruby on Rails",
+//   "Django",
+//   "Flask",
+//   "Spring Boot",
+//   "Laravel",
+//   "ASP.NET",
+//   "Svelte",
+//   "Ember.js",
+//   "Backbone.js",
+//   "Express.js",
+//   "Koa.js",
+//   "Next.js",
+//   "Nuxt.js",
+//   "Gatsby.js",
+//   "JQuery",
+//   "Meteor.js",
+//   "Aurelia",
+//   "FastAPI",
+// ];
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const databaseName = ["FDUFDDB", "EDMTTX"];
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+
 interface RepoPath {
   [key: string]: Url;
 }
 
 function AddApplication() {
   // const { toast } = useToast();
+  const [TechStacksFromAPI,setTechStacksFromAPI] = useState([]);
   const [selectedTechStack, setSelectedTechStack] = useState<string[]>([]);
   const [selectedDatabaseName, setSelectedDatabaseName] = useState<string[]>(
     []
@@ -103,10 +73,7 @@ function AddApplication() {
   const [repoPath, setRepoPath] = useState<RepoPath>({});
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [open, setOpen] = useState(false);
-  // const [applicationType, setApplicationType] = useState("")
-  const [value, setValue] = useState("");
+  const [uploading, setUploading] = useState(false); 
 
   const handleAddTechStack = (tech: string) => {
     if (!selectedTechStack.includes(tech)) {
@@ -235,6 +202,26 @@ function AddApplication() {
     }
   };
 
+  useEffect(() => {
+    const fetchTechStacks = async () => {
+      try {
+        const response = await getTechStacks();
+        console.log("Response from API: ", response);
+
+        if (response.isSuccess && response.result) {
+          setTechStacksFromAPI(response.result);
+          console.log("RESULT ARRAY : ",response.result)
+        } else {
+          console.error("API response indicates failure or no result found:", response.data.errors);
+        }
+      } catch (error) {
+        console.error("Error fetching TechStacks:", error);
+      }
+    };
+
+    fetchTechStacks();
+  }, []);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
   };
@@ -346,9 +333,9 @@ function AddApplication() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {techStackOptions.map((tech) => (
-                              <SelectItem key={tech} value={tech}>
-                                {tech}
+                            {TechStacksFromAPI.map((tech) => (
+                              <SelectItem key={tech._id} value={tech.techStackName}>
+                                {tech.techStackName}
                               </SelectItem>
                             ))}
                           </SelectContent>
