@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ArrowLeft, XCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -62,11 +63,16 @@ const databaseName = ["FDUFDDB", "EDMTTX"];
 interface RepoPath {
   [key: string]: Url;
 }
+interface TechStack {
+  _id:string,
+  techStackName: string;
+  logo: string;
+}
 
 function AddApplication() {
   // const { toast } = useToast();
-  const [TechStacksFromAPI,setTechStacksFromAPI] = useState([]);
-  const [selectedTechStack, setSelectedTechStack] = useState<string[]>([]);
+  const [TechStacksFromAPI,setTechStacksFromAPI] = useState<TechStack[]>([]);
+  const [selectedTechStack, setSelectedTechStack] = useState<TechStack[]>([]);
   const [selectedDatabaseName, setSelectedDatabaseName] = useState<string[]>(
     []
   );
@@ -74,37 +80,42 @@ function AddApplication() {
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
   const [uploading, setUploading] = useState(false); 
-
-  const handleAddTechStack = (tech: string) => {
-    if (!selectedTechStack.includes(tech)) {
-      setSelectedTechStack([...selectedTechStack, tech]);
-      form.setValue("techStack", [...selectedTechStack, tech]);
+ 
+  const handleAddTechStack = (techId: string) => {
+    const tech = TechStacksFromAPI.find(t => t._id === techId);
+    console.log('Selected Tech:', tech);  // Add this log
+    console.log('Selected TechStack:', selectedTechStack);
+    if (tech && !selectedTechStack.some(t => t._id === tech._id)) {
+      const updatedTechStack = [...selectedTechStack, tech];
+      setSelectedTechStack(updatedTechStack); 
+      form.setValue("techStack", updatedTechStack as any);
     }
   };
 
-  const handleRemoveTechStack = (tech: string) => {
-    const updatedTechStack = selectedTechStack.filter((t) => t !== tech);
+  const handleRemoveTechStack = (techId: string) => {
+    const updatedTechStack = selectedTechStack.filter(t => t._id !== techId);
     setSelectedTechStack(updatedTechStack);
-    form.setValue("techStack", updatedTechStack);
+    form.setValue("techStack", updatedTechStack as any);
   };
+
   const handleDatabases = (db: string) => {
     if (!selectedDatabaseName.includes(db)) {
       setSelectedDatabaseName([...selectedDatabaseName, db]);
-      form.setValue("databases", [...selectedDatabaseName, db]);
+      form.setValue("databases", [...selectedDatabaseName, db] as any);
     }
   };
 
   const handleRemoveDatabases = (db: string) => {
     const updatedDatabases = selectedDatabaseName.filter((t) => t !== db);
     setSelectedDatabaseName(updatedDatabases);
-    form.setValue("databases", updatedDatabases);
+    form.setValue("databases", updatedDatabases as any);
   };
 
   const handleAddRepoPath = () => {
     if (newKey && newValue) {
       const updatedRepoPath = { ...repoPath, [newKey]: newValue };
-      setRepoPath(updatedRepoPath);
-      form.setValue("repoPath", updatedRepoPath);
+      setRepoPath(updatedRepoPath as any);
+      form.setValue("repoPath", updatedRepoPath as any);
       setNewKey("");
       setNewValue("");
     }
@@ -114,8 +125,14 @@ function AddApplication() {
     const updatedRepoPath = { ...repoPath };
     delete updatedRepoPath[key];
     setRepoPath(updatedRepoPath);
-    form.setValue("repoPath", updatedRepoPath);
+    form.setValue("repoPath", updatedRepoPath as any);
   };
+
+  const techStackSchema = z.object({
+    _id: z.string(),
+    techStackName: z.string(),
+    logo: z.string().url({ message: "Invalid URL for logo" })
+  });
 
   const formSchema = z.object({
     applicationName: z.string().min(2, {
@@ -134,8 +151,8 @@ function AddApplication() {
     }),
     sharepointLink: z.string().url({ message: "Invalid url" }),
     techStack: z
-      .array(z.string())
-      .nonempty({ message: "At least one tech stack must be selected." }),
+    .array(techStackSchema)
+    .nonempty({ message: "At least one tech stack must be selected." }),
     databases: z
       .array(z.string())
       .nonempty({ message: "At least one Database must be selected." }),
@@ -152,7 +169,7 @@ function AddApplication() {
       sharepointLink: "",
       techStack: [],
       databases: [],
-      excelLink: "",
+      excelLink: "https://ufd.ttx.com",
     },
   });
 
@@ -192,7 +209,8 @@ function AddApplication() {
     if (file) {
       setUploading(true);
       try {
-        const url = await uploadToCloudinary(file);
+        let url = await uploadToCloudinary(file);
+        url = "https://ufd.ttx.com"
         form.setValue("excelLink", url);
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -218,9 +236,12 @@ function AddApplication() {
         console.error("Error fetching TechStacks:", error);
       }
     };
-
     fetchTechStacks();
   }, []);
+
+  // useEffect(() => {
+  //   console.log("Form Errors:", form.formState.errors);
+  // }, [form.formState.errors]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
@@ -302,11 +323,11 @@ function AddApplication() {
                         {Object.entries(repoPath).map(([key, value]) => (
                           <div
                             key={key}
-                            className="flex items-center gap-2 bg-gray-200 p-2 rounded-lg "
+                            className="flex items-center gap-2 border-2 border-dashed p-2 rounded-lg"
                           >
-                            <span>{`${key}: ${value}`}</span>
+                            <span>{`${key}:${value}`}</span>
                             <XCircle
-                              className="cursor-pointer"
+                              className="cursor-pointer hover:text-red-500"
                               onClick={() => handleRemoveRepoPath(key)}
                             />
                           </div>
@@ -334,8 +355,11 @@ function AddApplication() {
                           </FormControl>
                           <SelectContent>
                             {TechStacksFromAPI.map((tech) => (
-                              <SelectItem key={tech._id} value={tech.techStackName}>
+                              <SelectItem key={tech._id} value={tech._id}>
+                                <div className="flex gap-3">
+                                <img className="w-6 h-6" src={tech?.logo} alt="logo" />
                                 {tech.techStackName}
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -347,13 +371,14 @@ function AddApplication() {
                   <div className="mt-4 flex flex-wrap gap-4">
                     {selectedTechStack.map((tech) => (
                       <div
-                        key={tech}
-                        className="flex items-center gap-2 bg-gray-200 p-2 rounded-lg"
+                        key={tech._id}
+                        className="flex items-center gap-2 border-2 border-dashed p-2"
                       >
-                        <span>{tech}</span>
+                        <img className="w-6 h-6" src={tech.logo} alt="logo" />
+                        <span className="">{tech.techStackName}</span>
                         <XCircle
-                          className="cursor-pointer"
-                          onClick={() => handleRemoveTechStack(tech)}
+                          className="cursor-pointer text-gray-400 hover:text-red-500"
+                          onClick={() => handleRemoveTechStack(tech._id)}
                         />
                       </div>
                     ))}
@@ -470,7 +495,7 @@ function AddApplication() {
                       <FormDescription className="text-blue-400">
                         File should be in .xls format only
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
