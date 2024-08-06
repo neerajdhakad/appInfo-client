@@ -20,7 +20,7 @@ function Applications() {
           <Input type="text" placeholder="Search application by name" />
         </div>
         {/* Applcations */}
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-wrap"> 
         <Card />
         <Card />
         <Card />

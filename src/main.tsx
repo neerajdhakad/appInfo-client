@@ -6,6 +6,7 @@ import { RouterProvider,createBrowserRouter  } from 'react-router-dom'
 // import Layout from './Layout.tsx'
 import AddApplication from './pages/AddApplication.tsx'
 import PageNotFound from './pages/PageNotFound.tsx'
+import AppDetails from './pages/AppDetails.tsx'
 const router = createBrowserRouter([
   {
     path: "/",
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: "/addApplication",
     element: <AddApplication />,
+  }, 
+  {
+    path: "/details/:id",
+    element: <AppDetails />,
   }, 
   {
     path: "*",

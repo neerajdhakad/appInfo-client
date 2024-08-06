@@ -249,13 +249,13 @@ function AddApplication() {
 
   return (
     <>
-      <div className="fixed w-full py-4 px-8 flex items-center gap-4 shadow-md dark:bg-gray-800 dark:text-white">
+      <div className="fixed w-full py-4 px-8 flex items-center gap-4 shadow-md bg-white dark:bg-gray-800 dark:text-white">
         <Link to={"/"}>
           <ArrowLeft />
         </Link>
         <div className="text-2xl cursor-pointer">Add Application details</div>
       </div>
-      <p className="text-2xl font-bold px-8 py-4">Add Application</p>
+      <p className="pt-24 text-2xl font-bold px-8 py-4">Add Application</p>
       <div className="flex justify-center">
         <div className="w-full px-8 py-4">
           <Form {...form}>
