@@ -172,10 +172,7 @@ function AddApplication() {
     sharepointLink: z.string().url({ message: "Invalid url" }),
     techStack: z
     .array(techStackSchema)
-    .nonempty({ message: "At least one tech stack must be selected." }),
-    databases: z
-      .array(z.string())
-      .nonempty({ message: "At least one Database must be selected." }),
+    .nonempty({ message: "At least one tech stack must be selected." }), 
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -190,7 +187,7 @@ function AddApplication() {
       techStack: [],
       database: {},
       applicationType:"",
-      excelLink: "https://ufd.ttx.com",
+      excelLink: "",
     },
   });
 

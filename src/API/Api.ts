@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = 'https://localhost:44318/api';
+// const API_URL = 'https://localhost:44318/api';
+const API_URL = 'http://localhost:5241/api';
 
 const getTechStacks = async () => {
     try {
