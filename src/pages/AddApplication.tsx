@@ -58,9 +58,11 @@ import {getTechStacks} from '../API/Api'
 // ];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const databaseName = ["FDUFDDB", "EDMTTX"];
 
 interface RepoPath {
+  [key: string]: Url;
+}
+interface Database {
   [key: string]: Url;
 }
 interface TechStack {
@@ -73,12 +75,14 @@ function AddApplication() {
   // const { toast } = useToast();
   const [TechStacksFromAPI,setTechStacksFromAPI] = useState<TechStack[]>([]);
   const [selectedTechStack, setSelectedTechStack] = useState<TechStack[]>([]);
-  const [selectedDatabaseName, setSelectedDatabaseName] = useState<string[]>(
-    []
-  );
   const [repoPath, setRepoPath] = useState<RepoPath>({});
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
+
+  const [database, setDatabase] = useState<Database>({});
+  const [serverName, setServerName] = useState<string>("");
+  const [dBName, setDBName] = useState<string>("");
+
   const [uploading, setUploading] = useState(false); 
  
   const handleAddTechStack = (techId: string) => {
@@ -98,18 +102,18 @@ function AddApplication() {
     form.setValue("techStack", updatedTechStack as any);
   };
 
-  const handleDatabases = (db: string) => {
-    if (!selectedDatabaseName.includes(db)) {
-      setSelectedDatabaseName([...selectedDatabaseName, db]);
-      form.setValue("databases", [...selectedDatabaseName, db] as any);
-    }
-  };
+  // const handleDatabases = (db: string) => {
+  //   if (!selectedDatabaseName.includes(db)) {
+  //     setSelectedDatabaseName([...selectedDatabaseName, db]);
+  //     form.setValue("databases", [...selectedDatabaseName, db] as any);
+  //   }
+  // };
 
-  const handleRemoveDatabases = (db: string) => {
-    const updatedDatabases = selectedDatabaseName.filter((t) => t !== db);
-    setSelectedDatabaseName(updatedDatabases);
-    form.setValue("databases", updatedDatabases as any);
-  };
+  // const handleRemoveDatabases = (db: string) => {
+  //   const updatedDatabases = selectedDatabaseName.filter((t) => t !== db);
+  //   setSelectedDatabaseName(updatedDatabases);
+  //   form.setValue("databases", updatedDatabases as any);
+  // };
 
   const handleAddRepoPath = () => {
     if (newKey && newValue) {
@@ -127,6 +131,22 @@ function AddApplication() {
     setRepoPath(updatedRepoPath);
     form.setValue("repoPath", updatedRepoPath as any);
   };
+  const handleAddDatabsae = () => {
+    if (serverName && dBName) {
+      const updatedDatabase = { ...database, [serverName]: dBName };
+      setDatabase(updatedDatabase as any);
+      form.setValue("database", updatedDatabase as any);
+      setServerName("");
+      setDBName("");
+    }
+  };
+
+  const handleRemoveDatabase = (key: string) => {
+    const updatedDatabase = { ...database};
+    delete updatedDatabase[key];
+    setDatabase(updatedDatabase);
+    form.setValue("database", updatedDatabase as any);
+  };
 
   const techStackSchema = z.object({
     _id: z.string(),
@@ -139,16 +159,23 @@ function AddApplication() {
       message: "Application Name must be at least 2 characters.",
     }),
     prodUrl: z.string().url({ message: "Invalid url" }),
+    applicationType: z.string().min(5, { message: "Must be 5 or fewer characters long" }),
     repoPath: z
       .record(z.string(), z.string().url({ message: "Invalid URL" }))
       .refine((data) => Object.keys(data).length > 0, {
         message: "At least one Repo path must be added.",
+      }),
+    database: z
+      .record(z.string(), z.string())
+      .refine((data) => Object.keys(data).length > 0, {
+        message: "At least one Database must be added.",
       }),
     // SPExcelSheet : z.string().url({message:"upload Excel sheet"}) ,
     excelLink: z.string().url().optional(),
     applicationSMEName: z.string().min(2, {
       message: "Application SME Name must be at least 2 characters.",
     }),
+    accessRequired: z.string().min(5, { message: "Must be 5 or fewer characters long" }),
     sharepointLink: z.string().url({ message: "Invalid url" }),
     techStack: z
     .array(techStackSchema)
@@ -164,11 +191,12 @@ function AddApplication() {
       applicationName: "",
       prodUrl: "",
       applicationSMEName: "",
-      // applicationType:"",
+      accessRequired:"",
       repoPath: {},
       sharepointLink: "",
       techStack: [],
-      databases: [],
+      database: {},
+      applicationType:"",
       excelLink: "https://ufd.ttx.com",
     },
   });
@@ -293,7 +321,7 @@ function AddApplication() {
                     </FormItem>
                   )}
                 />
-
+              <div className="repoPath">
                 <FormField
                   control={form.control}
                   name="repoPath"
@@ -319,7 +347,7 @@ function AddApplication() {
                           Add
                         </Button>
                       </div>
-                      <div className="flex items-center gap-4 mt-4">
+                      <div className="flex flex-wrap items-center gap-4 mt-4">
                         {Object.entries(repoPath).map(([key, value]) => (
                           <div
                             key={key}
@@ -337,6 +365,7 @@ function AddApplication() {
                     </FormItem>
                   )}
                 />
+              </div>
 
                 <div className="tech-stack">
                   <FormField
@@ -385,46 +414,53 @@ function AddApplication() {
                   </div>
                 </div>
                 <div className="databases">
-                  <FormField
-                    control={form.control}
-                    name="databases"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Database</FormLabel>
-                        <Select
-                          onValueChange={(value) => handleDatabases(value)}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Databases used in the application" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {databaseName.map((db) => (
-                              <SelectItem key={db} value={db}>
-                                {db}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-red-500" />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="mt-4 flex flex-wrap gap-4">
-                    {selectedDatabaseName.map((db) => (
-                      <div
-                        key={db}
-                        className="flex items-center gap-2 bg-gray-200 p-2 rounded-lg"
-                      >
-                        <span>{db}</span>
-                        <XCircle
-                          className="cursor-pointer"
-                          onClick={() => handleRemoveDatabases(db)}
+                <FormField
+                  control={form.control}
+                  name="database"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Database</FormLabel>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Server name"
+                          value={serverName}
+                          onChange={(e) => setServerName(e.target.value)}
                         />
+                        <Input
+                          placeholder="Database name"
+                          value={dBName}
+                          onChange={(e) => setDBName(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant={"outline"}
+                          onClick={handleAddDatabsae}
+                        >
+                          Add
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex flex-wrap items-center gap-4 mt-4">
+                        {Object.entries(database).map(([key, value]) => (
+                          <div
+                            key={key}
+                            className="flex items-center gap-2 border-2 border-dashed p-2 rounded-lg"
+                          >
+                            <span>{`${key}:${value}`}</span>
+                            <XCircle
+                              className="cursor-pointer hover:text-red-500"
+                              onClick={() => handleRemoveDatabase(key)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <FormDescription className="text-blue-400">
+                        Please Add your Application Server and DB names.
+                      </FormDescription>
+                      <FormMessage className="text-red-600" />
+                    </FormItem>
+                  )}
+                />
+
                 </div>
                 <FormField
                   control={form.control}
@@ -434,6 +470,32 @@ function AddApplication() {
                       <FormLabel>Application SME Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Devendra Jha" {...field} />
+                      </FormControl> 
+                      <FormMessage className="text-red-500" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicationType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Application Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Web Application" {...field} />
+                      </FormControl> 
+                      <FormMessage className="text-red-500" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="accessRequired"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Access Required</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Maintain,AppUser,Request Admin" {...field} />
                       </FormControl>
                       {/* <FormDescription>
                         This is your public display name.
