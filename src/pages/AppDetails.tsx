@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
+
 function AppDetails() {
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +26,7 @@ function AppDetails() {
         <div className="text-2xl cursor-pointer">Application Name</div>
       </div>
       <div className="w-full flex flex-col md:flex-row gap-3 app-details px-8 mt-4">
-        <div className="w-1/2">
+        <div className="w-full md:w-1/2">
           {/* Application Repo Path */}
           <div className=" application-repo-path border-2 border-dashed  p-4">
             <h1 className="text-2xl font-semibold mb-2 md:mb-4">Repo Path</h1>
@@ -89,7 +90,7 @@ function AppDetails() {
             <p className="text-xl">MaintainAppUserRequestsAdmin</p>
           </div>
         </div>
-        <div className="w-1/2">
+        <div className="w-full md:w-1/2">
           {/* Database Used */}
           <div className="application-repo-path border-2 border-dashed  p-4">
             <h1 className="text-2xl font-semibold mb-2 md:mb-4">
@@ -123,7 +124,7 @@ function AppDetails() {
           </div>
           {/* Stored Procedure Excel Sheet */}
           <div className="prod-url mt-4 flex flex-wrap items-center gap-3 border-2 border-dashed   p-4">
-            <p className="text-2xl font-semibold">Stored Procedure Excel Sheet - </p>{" "}
+            <p className="text-2xl font-semibold">Stored Procedure Excel Sheet </p>{" "}
             <Button className="text-xl" variant={"outline"}>Export to Excel</Button>
           </div>
         </div>
