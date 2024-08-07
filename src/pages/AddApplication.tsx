@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ArrowLeft, XCircle } from "lucide-react";
+import { useFileUpload } from '../Custom Hooks/useFileUpload';
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button } from "../components/ui/button";
-import axios from "axios";
+import { Button } from "../components/ui/button"; 
 import {
   Form,
   FormControl,
@@ -27,6 +27,7 @@ import {
 import { useEffect, useState } from "react";
 import { Url } from "url";
 import {getTechStacks} from '../API/Api'
+
 // import { useToast } from "../components/ui/use-toast"
 
 // const techStackOptions = [
@@ -83,7 +84,13 @@ function AddApplication() {
   const [serverName, setServerName] = useState<string>("");
   const [dBName, setDBName] = useState<string>("");
 
-  const [uploading, setUploading] = useState(false); 
+  const { handleFileUpload, uploading } = useFileUpload();
+
+  const handleUpload = (url: string) => {
+    form.setValue('excelLink', url);
+  };
+
+  // const [uploading, setUploading] = useState(false); 
  
   const handleAddTechStack = (techId: string) => {
     const tech = TechStacksFromAPI.find(t => t._id === techId);
@@ -100,21 +107,7 @@ function AddApplication() {
     const updatedTechStack = selectedTechStack.filter(t => t._id !== techId);
     setSelectedTechStack(updatedTechStack);
     form.setValue("techStack", updatedTechStack as any);
-  };
-
-  // const handleDatabases = (db: string) => {
-  //   if (!selectedDatabaseName.includes(db)) {
-  //     setSelectedDatabaseName([...selectedDatabaseName, db]);
-  //     form.setValue("databases", [...selectedDatabaseName, db] as any);
-  //   }
-  // };
-
-  // const handleRemoveDatabases = (db: string) => {
-  //   const updatedDatabases = selectedDatabaseName.filter((t) => t !== db);
-  //   setSelectedDatabaseName(updatedDatabases);
-  //   form.setValue("databases", updatedDatabases as any);
-  // };
-
+  }; 
   const handleAddRepoPath = () => {
     if (newKey && newValue) {
       const updatedRepoPath = { ...repoPath, [newKey]: newValue };
@@ -201,52 +194,52 @@ function AddApplication() {
     },
   });
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "appInfo");
-    formData.append("cloud_name", "dl3lsipbs");
-    // https://api.cloudinary.com/v1_1/your_cloud_name/upload
-    // https://api.cloudinary.com/cloudinary://351261135951196:Wkp44z2eCjxA3o-oSPiV3E6E7xU@dl3lsipbs
-    try {
-      const response = await axios.post(
-        "https://api.cloudinary.com/v1_1/appInfo/file/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log(response);
-      return response.data.secure_url;
-    } catch (error) {
-      // toast({
-      //   title: "Error Uploading the excel file",
-      // })
-      alert("Error");
-      console.error("Error uploading to Cloudinary", error);
-      throw error;
-    }
-  };
+  // const uploadToCloudinary = async (file: File): Promise<string> => {
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("upload_preset", "appInfo");
+  //   formData.append("cloud_name", "dl3lsipbs");
+  //   // https://api.cloudinary.com/v1_1/your_cloud_name/upload
+  //   // https://api.cloudinary.com/cloudinary://351261135951196:Wkp44z2eCjxA3o-oSPiV3E6E7xU@dl3lsipbs
+  //   try {
+  //     const response = await axios.post(
+  //       "https://api.cloudinary.com/v1_1/appInfo/file/upload",
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+  //     console.log(response);
+  //     return response.data.secure_url;
+  //   } catch (error) {
+  //     // toast({
+  //     //   title: "Error Uploading the excel file",
+  //     // })
+  //     alert(process.env.REACT_APP_AZURE_STORAGE_CONNECTION_STRING);
+  //     console.error("Error uploading to Cloudinary", error);
+  //     throw error;
+  //   }
+  // };
 
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploading(true);
-      try {
-        let url = await uploadToCloudinary(file);
-        url = "https://ufd.ttx.com"
-        form.setValue("excelLink", url);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-      } finally {
-        setUploading(false);
-      }
-    }
-  };
+  // const handleFileUpload = async (
+  //   event: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     setUploading(true);
+  //     try {
+  //       let url = await uploadToCloudinary(file);
+  //       url = "https://ufd.ttx.com"
+  //       form.setValue("excelLink", url);
+  //     } catch (error) {
+  //       console.error("Error uploading file:", error);
+  //     } finally {
+  //       setUploading(false);
+  //     }
+  //   }
+  // };
 
   useEffect(() => {
     const fetchTechStacks = async () => {
@@ -533,7 +526,7 @@ function AddApplication() {
                         <Input
                           type="file"
                           accept=".xlsx, .xls"
-                          onChange={handleFileUpload}
+                          onChange={(event) => handleFileUpload(event, handleUpload)}
                         />
                       </FormControl>
                       {uploading && (
