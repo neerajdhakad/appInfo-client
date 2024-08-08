@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-
+import SkeletonAppDetails from "../components/SkeletonAppDetails";
 
 function AppDetails() {
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,12 @@ function AppDetails() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <div className="px-8">Add Skeleton Loading...</div>;
+  if (loading)
+    return (
+      <div className="px-8 grid grid-col-2 gap-6">
+          <SkeletonAppDetails  />
+      </div>
+    );
 
   return (
     <>
@@ -124,8 +129,12 @@ function AppDetails() {
           </div>
           {/* Stored Procedure Excel Sheet */}
           <div className="prod-url mt-4 flex flex-wrap items-center gap-3 border-2 border-dashed   p-4">
-            <p className="text-2xl font-semibold">Stored Procedure Excel Sheet </p>{" "}
-            <Button className="text-xl" variant={"outline"}>Export to Excel</Button>
+            <p className="text-2xl font-semibold">
+              Stored Procedure Excel Sheet{" "}
+            </p>{" "}
+            <Button className="text-xl" variant={"outline"}>
+              Export to Excel
+            </Button>
           </div>
         </div>
       </div>
