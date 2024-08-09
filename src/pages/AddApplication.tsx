@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ArrowLeft, XCircle } from "lucide-react";
-import { useFileUpload } from '../Custom Hooks/useFileUpload';
+import { ArrowLeft, XCircle } from "lucide-react"; 
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
@@ -24,9 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Url } from "url";
-import {getTechStacks} from '../API/Api'
+import {getTechStacks,uploadFile} from '../API/Api'
 
 // import { useToast } from "../components/ui/use-toast"
 
@@ -78,20 +77,32 @@ function AddApplication() {
   const [selectedTechStack, setSelectedTechStack] = useState<TechStack[]>([]);
   const [repoPath, setRepoPath] = useState<RepoPath>({});
   const [newKey, setNewKey] = useState("");
-  const [newValue, setNewValue] = useState("");
+  const [newValue, setNewValue] = useState(""); 
 
   const [database, setDatabase] = useState<Database>({});
   const [serverName, setServerName] = useState<string>("");
   const [dBName, setDBName] = useState<string>("");
-
-  const { handleFileUpload, uploading } = useFileUpload();
-
-  const handleUpload = (url: string) => {
-    form.setValue('excelLink', url);
-  };
-
-  // const [uploading, setUploading] = useState(false); 
+  const [uploading, setUploading] = useState(false); 
  
+  // const handleUpload = (url: string) => {
+  //   form.setValue('excelLink', url);
+  // };
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>)=>{
+   const selectedFile = event.target.files?.[0]
+   if (!selectedFile) return; 
+   setUploading(true)
+   try {
+     const response = await uploadFile(selectedFile);
+     console.log('Response from blob: ', response)
+     form.setValue("excelLink",response.blob.uri)
+   } catch (error) {
+    console.log('Error while uploading the file',error);
+   }
+   finally{
+    setUploading(false)
+   }
+  } 
+  
   const handleAddTechStack = (techId: string) => {
     const tech = TechStacksFromAPI.find(t => t._id === techId);
     console.log('Selected Tech:', tech);  // Add this log
@@ -242,11 +253,11 @@ function AddApplication() {
     const fetchTechStacks = async () => {
       try {
         const response = await getTechStacks();
-        console.log("Response from API: ", response);
+        // console.log("Response from API: ", response);
 
         if (response.isSuccess && response.result) {
           setTechStacksFromAPI(response.result);
-          console.log("RESULT ARRAY : ",response.result)
+          // console.log("RESULT ARRAY : ",response.result)
         } else {
           console.error("API response indicates failure or no result found:", response.data.errors);
         }
@@ -523,7 +534,7 @@ function AddApplication() {
                         <Input
                           type="file"
                           accept=".xlsx, .xls"
-                          onChange={(event) => handleFileUpload(event, handleUpload)}
+                          onChange={(event) => handleFileUpload(event)}
                         />
                       </FormControl>
                       {uploading && (
@@ -552,9 +563,6 @@ function AddApplication() {
                   )}
                 />
               </div>
-
-              
-
               <Button type="submit" variant={"outline"}>
                 Submit
               </Button>
