@@ -25,7 +25,7 @@ import {
 } from "../components/ui/select";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Url } from "url";
-import {getTechStacks,uploadFile,postApplication } from '../API/Api'
+import {getTechStacks,uploadFile,postApplication } from '../API/Api' 
 
 // import { useToast } from "../components/ui/use-toast"
 
@@ -79,9 +79,9 @@ function AddApplication() {
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState(""); 
 
-  const [database, setDatabase] = useState<Database>({});
+  const [databases, setDatabases] = useState<Database>({});
   const [serverName, setServerName] = useState<string>("");
-  const [dBName, setDBName] = useState<string>("");
+  const [databaseName, setDatabaseName] = useState<string>("");
   const [uploading, setUploading] = useState(false); 
  
   // const handleUpload = (url: string) => {
@@ -136,20 +136,20 @@ function AddApplication() {
     form.setValue("repoPath", updatedRepoPath as any);
   };
   const handleAddDatabsae = () => {
-    if (serverName && dBName) {
-      const updatedDatabase = { ...database, [serverName]: dBName };
-      setDatabase(updatedDatabase as any);
-      form.setValue("database", updatedDatabase as any);
+    if (serverName && databaseName) {
+      const updatedDatabase = { ...databases, [serverName]: databaseName };
+      setDatabases(updatedDatabase as any);
+      form.setValue("databases", updatedDatabase as any);
       setServerName("");
-      setDBName("");
+      setDatabaseName("");
     }
   };
 
   const handleRemoveDatabase = (key: string) => {
-    const updatedDatabase = { ...database};
+    const updatedDatabase = { ...databases};
     delete updatedDatabase[key];
-    setDatabase(updatedDatabase);
-    form.setValue("database", updatedDatabase as any);
+    setDatabases(updatedDatabase);
+    form.setValue("databases", updatedDatabase as any);
   };
 
   const techStackSchema = z.object({
@@ -169,7 +169,7 @@ function AddApplication() {
       .refine((data) => Object.keys(data).length > 0, {
         message: "At least one Repo path must be added.",
       }),
-    database: z
+    databases: z
       .record(z.string(), z.string())
       .refine((data) => Object.keys(data).length > 0, {
         message: "At least one Database must be added.",
@@ -196,7 +196,7 @@ function AddApplication() {
       repoPath: {},
       sharepointLink: "",
       techStack: [],
-      database: {},
+      databases: {},
       applicationType:"",
       excelLink: "",
     },
@@ -274,7 +274,16 @@ function AddApplication() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const result = await postApplication(values);
+      // Transform the techStack to only send techStackName
+      const transformedValues = {
+        ...values,
+        techStack: values.techStack.map((stack) => stack.techStackName),
+      } as Omit<typeof values, "techStack"> & { techStack: string[] };
+  
+      console.log("Transformed Form Data:", transformedValues);
+  
+      // Post transformed values to the backend
+      const result = await postApplication(transformedValues);
       if (result.success) {
         alert("Form submitted successfully!");
       } else {
@@ -426,7 +435,7 @@ function AddApplication() {
                 <div className="databases">
                 <FormField
                   control={form.control}
-                  name="database"
+                  name="databases"
                   render={() => (
                     <FormItem>
                       <FormLabel>Database</FormLabel>
@@ -438,8 +447,8 @@ function AddApplication() {
                         />
                         <Input
                           placeholder="Database name"
-                          value={dBName}
-                          onChange={(e) => setDBName(e.target.value)}
+                          value={databaseName}
+                          onChange={(e) => setDatabaseName(e.target.value)}
                         />
                         <Button
                           type="button"
@@ -450,7 +459,7 @@ function AddApplication() {
                         </Button>
                       </div>
                       <div className="flex flex-wrap items-center gap-4 mt-4">
-                        {Object.entries(database).map(([key, value]) => (
+                        {Object.entries(databases).map(([key, value]) => (
                           <div
                             key={key}
                             className="flex items-center gap-2 border-2 border-dashed p-2 rounded-lg"
