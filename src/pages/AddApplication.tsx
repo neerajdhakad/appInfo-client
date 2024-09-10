@@ -25,7 +25,7 @@ import {
 } from "../components/ui/select";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Url } from "url";
-import {getTechStacks,uploadFile} from '../API/Api'
+import {getTechStacks,uploadFile,postApplication } from '../API/Api'
 
 // import { useToast } from "../components/ui/use-toast"
 
@@ -272,8 +272,17 @@ function AddApplication() {
   //   console.log("Form Errors:", form.formState.errors);
   // }, [form.formState.errors]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const result = await postApplication(values);
+      if (result.success) {
+        alert("Form submitted successfully!");
+      } else {
+        alert("Form submission failed.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   return (
